@@ -567,13 +567,23 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
                 moveTo = swapRight ? (int) (viewWidth - rightOffset) : (int) (-viewWidth + leftOffset);
             }
         }
-
+        final int moveToFinal = moveTo;
+        final ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(view.getLayoutParams());
+        final int originalLeftMargin = params.leftMargin;
+        final int originalRightMargin = params.rightMargin;
         animate(view)
                 .translationX(moveTo)
                 .setDuration(animationTime)
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
+					    if (Build.VERSION.SDK_INT < 11) {
+                            final ViewGroup.MarginLayoutParams newLayoutParams = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
+                            newLayoutParams.leftMargin =  originalLeftMargin + moveToFinal;
+                            newLayoutParams.rightMargin = - (originalRightMargin + moveToFinal);
+                            view.setLayoutParams(newLayoutParams);
+                            ViewHelper.setTranslationX(view, 0);
+                        }
                         swipeListView.resetScrolling();
                         if (swap) {
                             boolean aux = !opened.get(position);
