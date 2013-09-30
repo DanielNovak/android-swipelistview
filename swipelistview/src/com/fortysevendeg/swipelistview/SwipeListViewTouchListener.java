@@ -564,7 +564,7 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
             }
         } else {
             if (swap) {
-                moveTo = swapRight ? (int) (viewWidth - rightOffset) : (int) (-viewWidth + leftOffset);
+                moveTo = swapRight ? 0 : (int) (-viewWidth + leftOffset);
             }
         }
         final int moveToFinal = moveTo;
