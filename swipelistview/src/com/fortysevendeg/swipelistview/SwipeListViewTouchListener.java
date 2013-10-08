@@ -558,15 +558,21 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
      */
     private void generateRevealAnimate(final View view, final boolean swap, final boolean swapRight, final int position) {
         int moveTo = 0;
-        if (opened.get(position)) {
-            if (!swap) {
-                moveTo = openedRight.get(position) ? (int) (viewWidth - rightOffset) : (int) (-viewWidth + leftOffset);
+            if (opened.get(position)) {
+                if (!swap) {
+                    moveTo = openedRight.get(position) ? (int) (viewWidth - rightOffset) : (int) (-viewWidth + leftOffset);
+                    if (moveTo > 0) {
+                        moveTo = 0;
+                    }
+                }
+            } else {
+                if (swap) {
+                    moveTo = swapRight ? (int) (viewWidth - rightOffset) : (int) (-viewWidth + leftOffset);
+                    if (moveTo > 0) {
+                        moveTo = 0;
+                    }
+                }
             }
-        } else {
-            if (swap) {
-                moveTo = swapRight ? 0 : (int) (-viewWidth + leftOffset);
-            }
-        }
         final int moveToFinal = moveTo;
         final ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(view.getLayoutParams());
         final int originalLeftMargin = params.leftMargin;
