@@ -24,6 +24,7 @@ import android.database.DataSetObserver;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewConfigurationCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -31,6 +32,7 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 
 import java.util.List;
+import java.util.logging.LogManager;
 
 /**
  * ListView subclass that provides the swipe functionality
@@ -112,6 +114,7 @@ public class SwipeListView extends ListView {
     private float lastMotionX;
     private float lastMotionY;
     private int touchSlop;
+    private boolean singleSwipe;
 
     int swipeFrontView = 0;
     int swipeBackView = 0;
@@ -363,6 +366,27 @@ public class SwipeListView extends ListView {
         if (swipeListViewListener != null && position != ListView.INVALID_POSITION) {
             swipeListViewListener.onStartOpen(position, action, right);
         }
+
+        if (singleSwipe) {
+            try {
+                int start = getFirstVisiblePosition();
+                int end = getLastVisiblePosition();
+                for (int i = start; i <= end; i++) {
+
+                    if (i != position) {
+                        closeAnimate(i);
+                    }
+                }
+            } catch (Exception ignored) { }
+        }
+    }
+
+    public boolean isSingleSwipe() {
+        return singleSwipe;
+    }
+
+    public void setSingleSwipe(boolean singleSwipe) {
+        this.singleSwipe = singleSwipe;
     }
 
     /**
@@ -650,7 +674,9 @@ public class SwipeListView extends ListView {
      * @param x Position X
      * @param y Position Y
      */
-    private void checkInMoving(float x, float y) {
+    private boolean checkInMoving(float x, float y) {
+        boolean result = false;
+
         final int xDiff = (int) Math.abs(x - lastMotionX);
         final int yDiff = (int) Math.abs(y - lastMotionY);
 
@@ -662,13 +688,17 @@ public class SwipeListView extends ListView {
             touchState = TOUCH_STATE_SCROLLING_X;
             lastMotionX = x;
             lastMotionY = y;
+            result = true;
         }
 
         if (yMoved) {
             touchState = TOUCH_STATE_SCROLLING_Y;
             lastMotionX = x;
             lastMotionY = y;
+            result = false;
         }
+
+        return result;
     }
 
     /**

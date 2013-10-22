@@ -37,6 +37,7 @@ import com.nineoldandroids.view.ViewHelper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.LogManager;
 
 import static com.nineoldandroids.view.ViewHelper.setAlpha;
 import static com.nineoldandroids.view.ViewHelper.setTranslationX;
@@ -465,6 +466,7 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
         }
     }
 
+
     /**
      * Create animation
      *
@@ -558,21 +560,15 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
      */
     private void generateRevealAnimate(final View view, final boolean swap, final boolean swapRight, final int position) {
         int moveTo = 0;
-            if (opened.get(position)) {
-                if (!swap) {
-                    moveTo = openedRight.get(position) ? (int) (viewWidth - rightOffset) : (int) (-viewWidth + leftOffset);
-                    if (moveTo > 0) {
-                        moveTo = 0;
-                    }
-                }
-            } else {
-                if (swap) {
-                    moveTo = swapRight ? (int) (viewWidth - rightOffset) : (int) (-viewWidth + leftOffset);
-                    if (moveTo > 0) {
-                        moveTo = 0;
-                    }
-                }
+        if (opened.get(position)) {
+            if (!swap) {
+                moveTo = openedRight.get(position) ? (int) (viewWidth - rightOffset) : (int) (-viewWidth + leftOffset);
             }
+        } else {
+            if (swap) {
+                moveTo = swapRight ? 0 : (int) (-viewWidth + leftOffset);
+            }
+        }
         final int moveToFinal = moveTo;
         final ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(view.getLayoutParams());
         final int originalLeftMargin = params.leftMargin;
@@ -601,7 +597,7 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
                                 swipeListView.onClosed(position, openedRight.get(position));
                             }
                         }
-                        resetCell();
+                        //resetCell();
                     }
                 });
     }
@@ -706,6 +702,7 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
         }
 
     }
+    private float yDistance, lastY;
 
     /**
      * @see View.OnTouchListener#onTouch(android.view.View, android.view.MotionEvent)
@@ -725,6 +722,9 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
                 if (paused && downPosition != ListView.INVALID_POSITION) {
                     return false;
                 }
+                yDistance = 0f;
+                lastY = motionEvent.getY();
+
                 swipeCurrentAction = SwipeListView.SWIPE_ACTION_NONE;
 
                 int childCount = swipeListView.getChildCount();
@@ -773,6 +773,7 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
                 velocityTracker.addMovement(motionEvent);
                 velocityTracker.computeCurrentVelocity(1000);
                 float velocityX = Math.abs(velocityTracker.getXVelocity());
+
                 if (!opened.get(downPosition)) {
                     if (swipeMode == SwipeListView.SWIPE_MODE_LEFT && velocityTracker.getXVelocity() > 0) {
                         velocityX = 0;
@@ -821,6 +822,13 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
                 if (velocityTracker == null || paused || downPosition == ListView.INVALID_POSITION) {
                     break;
                 }
+
+                //Check if we are in vertical scrolling - return false
+                final float curY = motionEvent.getY();
+                yDistance += Math.abs(curY - lastY);
+                lastY = curY;
+                if(yDistance > slop  && !swiping)
+                    return false;
 
                 velocityTracker.addMovement(motionEvent);
                 velocityTracker.computeCurrentVelocity(1000);
@@ -883,7 +891,6 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
                         backView.setVisibility(View.GONE);
                     }
                 }
-
                 if (swiping && downPosition != ListView.INVALID_POSITION) {
                     if (opened.get(downPosition)) {
                         deltaX += openedRight.get(downPosition) ? viewWidth - rightOffset : -viewWidth + leftOffset;
