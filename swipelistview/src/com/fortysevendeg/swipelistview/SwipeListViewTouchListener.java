@@ -740,7 +740,14 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
                     int childPosition = swipeListView.getPositionForView(child);
 
                     // dont allow swiping if this is on the header or footer or IGNORE_ITEM_VIEW_TYPE or enabled is false on the adapter
-                    boolean allowSwipe = swipeListView.getAdapter().isEnabled(childPosition) && swipeListView.getAdapter().getItemViewType(childPosition) >= 0;
+                    // fix outofbounds error HeaderViewListAdapter.java:164
+                    boolean allowSwipe = false;
+                    try {
+                        allowSwipe = swipeListView.getAdapter().isEnabled(childPosition) && swipeListView.getAdapter().getItemViewType(childPosition) >= 0;
+                    } catch (IndexOutOfBoundsException exception) {
+                        Log.e("SwipeListView", "SwipeListview out of bounds bug. ChildPos " + childPosition + ", total count - " + swipeListView.getAdapter().getCount());
+                    }
+
 
                     if (allowSwipe && rect.contains(x, y)) {
                         setParentView(child);
