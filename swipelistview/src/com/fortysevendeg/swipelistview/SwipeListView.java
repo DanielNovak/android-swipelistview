@@ -640,7 +640,13 @@ public class SwipeListView extends ListView {
 
         if (isEnabled() && touchListener.isSwipeEnabled()) {
 
-            if (touchState == TOUCH_STATE_SCROLLING_X) {
+             if (touchState == TOUCH_STATE_SCROLLING_X) {
+                //fix situation where view was blocked because user moved fingers outside of screen
+                switch (action) {
+                    case MotionEvent.ACTION_UP:
+                        touchState = TOUCH_STATE_REST;
+                        break;
+                }
                 return touchListener.onTouch(this, ev);
             }
 
