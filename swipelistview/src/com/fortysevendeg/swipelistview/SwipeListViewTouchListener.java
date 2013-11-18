@@ -751,7 +751,12 @@ public class SwipeListViewTouchListener implements View.OnTouchListener {
 
                     if (allowSwipe && rect.contains(x, y)) {
                         setParentView(child);
-                        setFrontView(child.findViewById(swipeFrontView));
+                        View childSwipe = child.findViewById(swipeFrontView);
+                        if (childSwipe == null) {
+                            Log.e("SwipeListView", "SwipeListview frontview null, pos " + childPosition + ", total count - " + swipeListView.getAdapter().getCount());
+                            break;
+                        }
+                        setFrontView(childSwipe);
 
                         downX = motionEvent.getRawX();
                         downPosition = childPosition;
