@@ -268,21 +268,39 @@ public class SwipeListView extends ListView {
         touchListener.unselectedChoiceStates();
     }
 
+  private DataSetObserver mDataSetObserver;
+    private ListAdapter mAdapter;
+
     /**
      * @see android.widget.ListView#setAdapter(android.widget.ListAdapter)
      */
     @Override
     public void setAdapter(ListAdapter adapter) {
         super.setAdapter(adapter);
+        mAdapter = adapter;
         touchListener.resetItems();
-        adapter.registerDataSetObserver(new DataSetObserver() {
+
+        if (mDataSetObserver != null) {
+            adapter.unregisterDataSetObserver(mDataSetObserver);
+        }
+
+        mDataSetObserver = new DataSetObserver() {
             @Override
             public void onChanged() {
                 super.onChanged();
                 onListChanged();
                 touchListener.resetItems();
             }
-        });
+        };
+        adapter.registerDataSetObserver(mDataSetObserver);
+    }
+
+    public void release() {
+        if (mDataSetObserver != null) {
+            mAdapter.unregisterDataSetObserver(mDataSetObserver);
+            mAdapter = null;
+        }
+
     }
 
     /**
